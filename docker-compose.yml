@@ -1,0 +1,33 @@
+services:
+  n8n:
+    image: n8nio/n8n:latest
+    container_name: n8n-presupuesto
+    restart: unless-stopped
+    ports:
+      - "5678:5678"
+    environment:
+      - N8N_HOST=${N8N_HOST}
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=${N8N_PROTOCOL}
+      - WEBHOOK_URL=${WEBHOOK_URL}
+      - N8N_SECURE_COOKIE=${N8N_SECURE_COOKIE}
+      - GENERIC_TIMEZONE=America/Bogota
+      - TZ=America/Bogota
+      - NODE_OPTIONS=--max-old-space-size=512
+    volumes:
+      - ./n8n_data:/home/node/.n8n
+
+  caddy:
+    image: caddy:alpine
+    container_name: caddy-ssl
+    restart: unless-stopped
+    profiles: ["prod"] # Solo se enciende en Google Cloud, no estorba en local
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - ./caddy_data:/data
+      - ./caddy_config:/config
+    depends_on:
+      - n8n
